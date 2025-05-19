@@ -1,96 +1,100 @@
-Pasive Recon Framework
+reconFramework
 
-It is just recon framework help you to get info on victum and it make a file and add all of this to help you share info with your team
+A comprehensive, all-in-one Python script for passive reconnaissance and OSINT data collection targeting domains. Ideal for pentesters, bug bounty hunters, and security researchers.
 
-Note you should use and virtual environment and install requirments.txt
+Features
 
-Usage:
+Subdomain Enumeration
+
+Uses SecurityTrails API (if SECURITYTRAILS_API_KEY provided)
+
+crt.sh certificate scraping fallback
+
+ASN & IP Information
+
+Resolves domain to IPs
+
+Queries RDAP via ipwhois for ASN and network CIDR
+
+GitHub Exposure Search
+
+Uses GitHub Search API (if GITHUB_TOKEN provided)
+
+Finds code snippets and potential leaks referencing the domain
+
+LinkedIn Profile Discovery
+
+Performs Bing search for site:linkedin.com/in <domain>
+
+Collects public LinkedIn profile URLs
+
+Report Generation
+
+Outputs a Markdown (.md) or HTML (.html) report
+
+Consolidates all findings in an easy-to-read format
+
+Prerequisites
+
+Python 3.6+
+
+PIP dependencies:
+
+pip install requests ipwhois markdown
+
+Environment variables (optional but recommended):
+
+SECURITYTRAILS_API_KEY — SecurityTrails API key for subdomain enumeration
+
+GITHUB_TOKEN — GitHub personal access token for code search
+
+Installation
+
+Clone the repository:
+
+git clone https://github.com/yourusername/reconFramework.git
+cd reconFramework
+
+(Optional) Create and activate a virtual environment:
+
+python3 -m venv venv
+source venv/bin/activate
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+Usage
+
+Run the script with the target domain and desired output file:
 
 python3 reconFramework.py -d example.com -o report.md
 
-Simple output from testing example.com
+To generate HTML instead of Markdown, specify -o report.html.
 
-``` bash
-(venv) ziad686@DESKTOP-9DQQS7O:/mnt/d/reconFramework$ python3 ./reconFramework.py -d example.com -o report.md
+Ensure environment variables are set for enhanced features:
+
+export SECURITYTRAILS_API_KEY="your_key"
+export GITHUB_TOKEN="your_token"
+
+Example
+
+$ python3 reconFramework.py -d example.com -o example_report.md
 [+] Starting passive recon for: example.com
-
-[+] crt.sh: 33 certificates parsed
-[+] Total subdomains: 10
-
-[+] GitHub: 0 results
-[+] LinkedIn: 0 profiles
-
+[+] SecurityTrails: 42 subdomains
+[+] crt.sh: Parsed 15 certificates
+[+] Total subdomains: 43
+[+] DNS resolution: success
+[+] ASN data collected for 2 IPs
+[+] GitHub: 5 results
+[+] LinkedIn: 3 profiles
 [+] Generating report...
-[+] Report saved to report.md
-(venv) ziad686@DESKTOP-9DQQS7O:/mnt/d/reconFramework$ cat ./report.md
-# Passive Recon Report: example.com
-## Subdomains
-- AS207960 Test Intermediate - example.com
-- dev.example.com
-- example.com
-- m.example.com
-- m.testexample.com
-- products.example.com
-- subjectname@example.com
-- support.example.com
-- user@example.com
-- www.example.com
+[+] Report saved to example_report.md
 
-## ASN Data
-```json
-{
-  "2600:1408:ec00:36::1736:7f24": {
-    "asn": "20940",
-    "network": "2600:1400::/24"
-  },
-  "23.215.0.138": {
-    "asn": "20940",
-    "network": "23.192.0.0/11"
-  },
-  "2600:1406:bc00:53::b81e:94ce": {
-    "asn": "20940",
-    "network": "2600:1400::/24"
-  },
-  "2600:1406:3a00:21::173e:2e66": {
-    "asn": "20940",
-    "network": "2600:1400::/24"
-  },
-  "2600:1406:bc00:53::b81e:94c8": {
-    "asn": "20940",
-    "network": "2600:1400::/24"
-  },
-  "23.192.228.84": {
-    "asn": "20940",
-    "network": "23.192.0.0/11"
-  },
-  "23.192.228.80": {
-    "asn": "20940",
-    "network": "23.192.0.0/11"
-  },
-  "2600:1406:3a00:21::173e:2e65": {
-    "asn": "20940",
-    "network": "2600:1400::/24"
-  },
-  "96.7.128.175": {
-    "asn": "20940",
-    "network": "96.6.0.0/15"
-  },
-  "96.7.128.198": {
-    "asn": "20940",
-    "network": "96.6.0.0/15"
-  },
-  "2600:1408:ec00:36::1736:7f31": {
-    "asn": "20940",
-    "network": "2600:1400::/24"
-  },
-  "23.215.0.136": {
-    "asn": "20940",
-    "network": "23.192.0.0/11"
-  }
-}
-```
-```
-## GitHub Exposures
-## LinkedIn Profiles
-(venv) ziad686@DESKTOP-9DQQS7O:/mnt/d/reconFramework$
-```
+License
+
+MIT License © 2025 Your Name
+
+Contributing
+
+Contributions are welcome! Please open issues or submit pull requests on GitHub.
