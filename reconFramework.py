@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 """
-Passive Recon Framework – All-in-One Script with Shodan Integration
+Passive Recon Framework – All-in-One Script
 
 Dependencies:
-    pip install requests ipwhois markdown shodan
-Environment Variables:
+    pip install requests ipwhois markdown
+Environment Variables (optional for enhanced features):
     SECURITYTRAILS_API_KEY  - API key for SecurityTrails subdomain lookup
     GITHUB_TOKEN            - Personal access token for GitHub Search API
-    SHODAN_API_KEY          - API key for Shodan
 
-Usage:
-    python3 passive_recon.py -d example.com -o report.md
 """
 import argparse
 import os
@@ -22,10 +19,10 @@ import json
 import requests
 from ipwhois import IPWhois
 import markdown
-import shodan
 
 # ---- Subdomain Enumeration ----
-def enumerate_subdomains(domain: str) -> list:
+def enumerate_subdomains(domain:
+    str) -> list:
     subs = set()
     api_key = os.getenv('SECURITYTRAILS_API_KEY')
     if api_key:
@@ -39,6 +36,7 @@ def enumerate_subdomains(domain: str) -> list:
             print(f"[+] SecurityTrails: {len(data.get('subdomains', []))} subdomains")
         except Exception as e:
             print(f"[!] SecurityTrails error: {e}")
+    # CRT.sh fallback
     try:
         url = f"https://crt.sh/?q=%25.{domain}&output=json"
         resp = requests.get(url, timeout=10)
@@ -48,7 +46,7 @@ def enumerate_subdomains(domain: str) -> list:
             for sub in name.split('\n'):
                 if '*' not in sub:
                     subs.add(sub.strip())
-        print(f"[+] crt.sh: Parsed {len(entries)} certificates")
+        print(f"[+] crt.sh: {len(entries)} certificates parsed")
     except Exception as e:
         print(f"[!] crt.sh error: {e}")
     return sorted(subs)
@@ -70,29 +68,6 @@ def lookup_asn(domain: str) -> dict:
             net = rdap.get('network',{}).get('cidr')
             results[ip] = {'asn': asn, 'network': net}
         except Exception as e:
-            results[ip] = {'error': str(e)}
-    return results
-
-# ---- Shodan Lookup ----
-def shodan_lookup(ips: list) -> dict:
-    shodan_api_key = os.getenv('SHODAN_API_KEY')
-    results = {}
-    if not shodan_api_key:
-        print('[!] No SHODAN_API_KEY set, skipping Shodan lookup')
-        return results
-    api = shodan.Shodan(shodan_api_key)
-    for ip in ips:
-        try:
-            host = api.host(ip)
-            info = {
-                'ip': ip,
-                'org': host.get('org'),
-                'os': host.get('os'),
-                'ports': host.get('ports')
-            }
-            results[ip] = info
-            print(f"[+] Shodan: {ip} - ports {info['ports']}")
-        except shodan.APIError as e:
             results[ip] = {'error': str(e)}
     return results
 
@@ -119,7 +94,7 @@ def find_github_exposures(domain: str) -> list:
 def scrape_linkedin(domain: str) -> list:
     profiles = set()
     query = f"site:linkedin.com/in {domain}"
-    url = "https://www.bing.com/search"
+    url = f"https://www.bing.com/search"
     params = {'q': query}
     headers = {'User-Agent': 'Mozilla/5.0'}
     try:
@@ -134,29 +109,20 @@ def scrape_linkedin(domain: str) -> list:
 
 # ---- Report Generation ----
 def generate_report(domain: str, subdomains: list, asn_data: dict,
-                    shodan_data: dict, github_exposures: list,
-                    linkedin_profiles: list, output_path: str) -> None:
-
+                    github_exposures: list, linkedin_profiles: list,
+                    output_path: str) -> None:
     md = [f"# Passive Recon Report: {domain}\n"]
     md.append("## Subdomains\n")
     for s in subdomains:
         md.append(f"- {s}\n")
-
     md.append("\n## ASN Data\n")
     md.append('```json\n' + json.dumps(asn_data, indent=2) + '\n```\n')
-
-    if shodan_data:
-        md.append("## Shodan Data\n")
-        md.append('```json\n' + json.dumps(shodan_data, indent=2) + '\n```\n')
-
     md.append("## GitHub Exposures\n")
     for url in github_exposures:
         md.append(f"- {url}\n")
-
     md.append("## LinkedIn Profiles\n")
     for url in linkedin_profiles:
         md.append(f"- {url}\n")
-
     content = ''.join(md)
     if output_path.endswith('.html'):
         html = markdown.markdown(content)
@@ -168,7 +134,7 @@ def generate_report(domain: str, subdomains: list, asn_data: dict,
 
 # ---- Main ----
 def main():
-    parser = argparse.ArgumentParser(description="Passive Recon All-in-One with Shodan")
+    parser = argparse.ArgumentParser(description="Passive Recon All-in-One")
     parser.add_argument('-d', '--domain', required=True, help='Target domain')
     parser.add_argument('-o', '--output', default='report.md', help='Report file (.md/.html)')
     args = parser.parse_args()
@@ -181,10 +147,6 @@ def main():
     time.sleep(1)
 
     asn_data = lookup_asn(domain)
-    ips = list(asn_data.keys())
-    time.sleep(1)
-
-    shodan_data = shodan_lookup(ips)
     time.sleep(1)
 
     github = find_github_exposures(domain)
@@ -193,7 +155,7 @@ def main():
     linkedin = scrape_linkedin(domain)
 
     print("\n[+] Generating report...")
-    generate_report(domain, subs, asn_data, shodan_data, github, linkedin, args.output)
+    generate_report(domain, subs, asn_data, github, linkedin, args.output)
     print(f"[+] Report saved to {args.output}")
 
 if __name__ == '__main__':
